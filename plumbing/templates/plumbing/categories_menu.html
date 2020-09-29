@@ -1,0 +1,7 @@
+<ul class="list-group">
+    <a href="../" class="mb-3"> Вернуться</a>
+    {% for category in categories_list %}
+        <a class="list-group-item list-group-item-action list-group-item-light text-center border border-dark mt-1 shadow"
+           href={{ category.id }}>{{ category.name }}</a>
+    {% endfor %}
+</ul>

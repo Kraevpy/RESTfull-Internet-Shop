@@ -1,0 +1,16 @@
+{% extends 'basic_generic.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col">
+            <div class="alert alert-info border border-dark shadow">
+                <h1 class="text-dark">Корзина</h1>
+                <p class="font-weight-bold">Цена = {{ cost }} BYN</p>
+            </div>
+        </div>
+        <div class="col-10">
+            {% include 'plumbing/products.html' with products=products %}
+        </div>
+
+    </div>
+{% endblock %}

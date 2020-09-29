@@ -1,0 +1,65 @@
+<div class="container-fluid">
+    <div class="row">
+        {% for product in products %}
+            <div class="col-5 ml-4 mt-2">
+                <div class="alert alert-success  border-dark mb-4  shadow-lg">
+                    <div class="text-truncate">
+                        <h4><a class="text-dark"
+                               href="{% url 'show_product' serial_number=product.serial_number %}">{{ product.name }}</a>
+                        </h4>
+                    </div>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="{% url 'show_product' serial_number=product.serial_number %}"><img
+                                        src="{{ product.photo }}" alt="..." class="img-thumbnail border-dark mt-4 mb-2"></a>
+                            </div>
+                            <div class="col-6 mt-4 text-truncate">
+
+                                <p>{{ product.serial_number }}</p>
+                                <p>{{ product.category.name }}</p>
+                                <p>{{ product.country }}</p>
+                                <p class="font-weight-bold">{{ product.cost }} BYN</p>
+                                {% if product.get_instance_count != 0 %}
+                                    <p>На складе: {{ product.get_instance_count }}</p>
+                                {% elif  product.delivery_date %}
+                                    <p class="text-info">Дата поставки: {{ product.delivery_date }}</p>
+                                {% else %}
+                                    <p class="text-danger">Нет на складе</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            {% if 'basket' in request.path %}
+                                <div class="col">
+                                    <a class="btn btn-outline-danger text-dark border-dark  ml-4 mb-2"
+                                       href="{% url 'remove_from_card' serial_number=product.serial_number %}">
+                                        Удалить</a>
+                                </div>
+                                <a class="btn btn-outline-success text-dark border-dark  ml-4 mb-2 float-right"
+                                   href="{% url 'order' serial_number=product.serial_number %}">
+                                    Заказать</a>
+                            {% else %}
+                                {% if user.is_authenticated and product.get_instance_count != 0 %}
+
+                                    <div class="col align-items-center ml-5">
+                                        <a class="btn btn-outline-light text-dark border-dark bg-light ml-4 mb-2"
+                                           href="{% url 'add_to_card' serial_number=product.serial_number %}">В
+                                            корзину</a>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            <div class="col align-items-center ml-5">
+                                <a class="btn btn-outline-light text-dark border-dark bg-light ml-4 mb-2"
+                                   href="{% url 'show_product' serial_number=product.serial_number %}">Подробнее</a>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>

@@ -1,0 +1,37 @@
+{% extends 'basic_generic.html' %}
+
+{% block content %}
+    <a href="{{ request.META.HTTP_REFERER }}"> Вернуться</a>
+    <div class="alert alert-light text-dark ">
+        <h3 class="text-center ">{{ product.name }}</h3>
+        <div class="row">
+            <div class="col-4">
+                <img src="{{ product.photo }}" alt="..." class="img-thumbnail mt-5 shadow">
+            </div>
+            <div class="col-8">
+                <div class="alert alert-light text-dark border mt-5 shadow">
+                    <p>Описание: </p>
+                    <p>{{ product.description }}</p>
+                    <p>Производитель: {{ product.maker }}</p>
+                    <p>Импортёр: {{ product.importer }}</p>
+                    <p>Страна производства: {{ product.country }}</p>
+                    {% if product.get_instance_count != 0 %}
+                        <p>На складе: {{ product.get_instance_count }}</p>
+                    {% elif  product.delivery_date %}
+                        <p class="text-info">Дата поставки: {{ product.delivery_date }}</p>
+                    {% else %}
+                        <p class="text-danger">Нет на складе</p>
+                    {% endif %}
+                    <p>Сертификат: {{ product.certificate }}</p>
+                    <h1>Цена: {{ product.cost }} BYN </h1>
+                    {% if user.is_authenticated and product.productinstance_set.count != 0 %}
+                        <a class="btn btn-success"
+                           href="{% url 'add_to_card' serial_number=product.serial_number %}?next={{ request.get_full_path }}">В корзину</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'plumbing/comments.html' with comments=comments %}
+{% endblock %}
+

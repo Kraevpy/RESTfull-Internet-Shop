@@ -1,0 +1,15 @@
+{% extends 'registration/registration_basic.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+
+{% block form %}
+    <div class="alert alert-success">
+        <h1>Войти</h1>
+        <p>Используйте следующую форму для входа:</p>
+        <form action="." method="post">
+            {{ form|crispy }}
+            {% csrf_token %}
+            <p><input type="submit" value="Log-in"></p>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'basic_generic.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-6">
+            <h1 class="text-center">Заказы</h1>
+            {% if request.user.id == user_id %}
+                {% for order in orders %}
+                    <div class="alert alert-info border-dark shadow-lg font-weight-bold mt-4">
+                        <h4 class="mb-2 text-center ">{{ order.product_name }}</h4>
+                        <p> {{ order.get_status }}</p>
+                        <p> {{ order.address }}</p>
+                        <p>{{ order.data_time }}</p>
+                        <p>{{ order.cost }} BYN</p>
+                    </div>
+                {% empty %}
+                    <h1>Ещё нет заказов</h1>
+                {% endfor %}
+
+            {% endif %}
+        </div>
+        <div class="col"></div>
+    </div>
+{% endblock %}

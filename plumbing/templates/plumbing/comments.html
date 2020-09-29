@@ -1,0 +1,31 @@
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid">
+    <div class="row">
+        {% if  comments %}
+            <div class="col-6 mb-4">
+            <h4 class="font-weight-bold text-center">Comments</h4>
+            {% for comment in comments %}
+                <div class="card mt-2 shadow">
+                    <p class="ml-2">{{ comment.sender }} {{ comment.send_data_time }}</p>
+                    <h5 class="font-weight-bold ml-2">{{ comment.text }}</h5>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h4 class="font-weight-bold text-center">Ещё нет комментариев</h4>
+        {% endif %}
+        </div>
+        <div class="col">
+            {% if user.is_authenticated %}
+                <h4 class="font-weight-bold text-center">Напишите ваш комментарий</h4>
+                <div class="card mt-2 shadow">
+                    <form method="POST" class="post-form">{% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="save btn btn-success ml-1 mb-1">Отправить</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
