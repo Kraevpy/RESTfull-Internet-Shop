@@ -8,6 +8,7 @@
 5) django-crripy-forms
 6) bootstrap 4
 7) postgresql
+8) unittests
 ```
 ```
 Установка:
