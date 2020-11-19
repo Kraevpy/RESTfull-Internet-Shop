@@ -1,72 +1,123 @@
-from django.contrib.auth.models import User
+from typing import Optional
+
 from django.core.exceptions import ObjectDoesNotExist
-from plumbing.models import Category, Product, Comments, Basket, ProductInstance, Order
+from plumbing.models import Category, Product, Comments, Basket, ProductInstance, Order, Company
+from django.contrib.auth.models import User
+from django.db.models import QuerySet
 
 
-def get_all_categories():
-    return Category.objects.filter(parent=None).all()
+def get_all_categories(field: str = 'name') -> QuerySet[Category]:
+    if field not in Category.__dict__:
+        field = 'name'
+    return Category.objects.filter(parent=None).order_by(field)
 
 
-def get_categories(category_id):
-    return Category.objects.filter(parent_id=category_id).all()
+def get_all_subcategories(field: str = 'name') -> QuerySet[Category]:
+    if field not in Category.__dict__:
+        field = 'name'
+    return Category.objects.filter(parent_id__isnull=False).order_by(field)
 
 
-def get_all_products():
-    return Product.objects.all()
+def get_all_products(field: str = 'name') -> QuerySet[Product]:
+    if field not in Product.__dict__:
+        field = 'name'
+    return Product.objects.all().order_by(field)
 
 
-def get_product(serial_number):
-    try:
-        return Product.objects.get(serial_number=serial_number)
-    except ObjectDoesNotExist:
-        return None
+def get_all_companies(field: str = 'name') -> QuerySet[Company]:
+    if field not in Company.__dict__:
+        field = 'name'
+    return Company.objects.all().order_by(field)
 
 
-def get_comments(product):
-    return Comments.objects.filter(product=product)
+def get_all_comments(field: str = 'send_data_time') -> QuerySet[Comments]:
+    if field not in Comments.__dict__:
+        field = 'send_data_time'
+    return Comments.objects.all().order_by(field)
 
 
-def get_product_with_category(category_id):
-    return Product.objects.filter(category__parent_id=category_id)
+def get_all_instances(field: str = 'product') -> QuerySet[ProductInstance]:
+    if field not in ProductInstance.__dict__:
+        field = 'product'
+    return ProductInstance.objects.all().order_by(field)
 
 
-def get_product_with_subcategory(subcategory_id):
-    return Product.objects.filter(category_id=subcategory_id)
+def get_all_baskets(field: str = 'user') -> QuerySet[Basket]:
+    if field not in Basket.__dict__:
+        field = 'user'
+    return Basket.objects.all().order_by(field)
 
 
-def get_user_products(user_id):
-    return Product.objects.filter(basket__user_id=user_id)
+def get_all_orders(field: str = 'customer') -> QuerySet[Order]:
+    if field not in Basket.__dict__:
+        field = 'customer'
+    return Order.objects.all().order_by(field)
 
 
-def create_basket(username):
-    user = User.objects.get(username=username)
-    basket = Basket(user_id=user.id)
-    basket.save()
-
-
-def add_to_card(user, serial_number):
+def add_to_card(user: User, serial_number: str) -> None:
     basket = Basket.objects.get(user_id=user.id)
     product = Product.objects.get(serial_number=serial_number)
     basket.products.add(product)
     basket.save()
 
 
-def remove_from_card(user, serial_number):
+def get_subcategories(category_id: int) -> QuerySet[Category]:
+    return Category.objects.filter(parent_id=category_id).all()
+
+
+def get_product(serial_number: str) -> Optional[Product]:
+    """Returns a product object by serial number. Returns None if no such object exists"""
+    try:
+        return Product.objects.get(serial_number=serial_number)
+    except ObjectDoesNotExist:
+        return None
+
+
+def get_comments(product: Product) -> QuerySet[Comments]:
+    """Returns all product comments"""
+    return Comments.objects.filter(product=product)
+
+
+def get_product_with_subcategory(category_id: int) -> QuerySet[Product]:
+    """Returns all products belonging to the subcategory"""
+    return Product.objects.filter(category__parent_id=category_id)
+
+
+def get_product_with_category(subcategory_id: int) -> QuerySet[Product]:
+    """Returns all products belonging to a category"""
+    return Product.objects.filter(category_id=subcategory_id)
+
+
+def get_user_products(user_id: int) -> QuerySet[Product]:
+    """Returns all items in the user's cart"""
+    return Product.objects.filter(basket__user_id=user_id)
+
+
+def create_basket(username: str) -> None:
+    """Creating a shopping cart for a user"""
+    user = User.objects.get(username=username)
+    basket = Basket(user_id=user.id)
+    basket.save()
+
+
+def remove_from_card(user: User, serial_number: str) -> None:
     basket = Basket.objects.get(user_id=user.id)
     product = Product.objects.get(serial_number=serial_number)
     basket.products.remove(product)
     basket.save()
 
 
-def change_instance_status(serial_number):
+def change_instance_status(serial_number: str) -> Optional[bool]:
+    """Changes the status of the instance to booked"""
     try:
         instance = ProductInstance.objects.filter(product__serial_number=serial_number, status='s').first()
         instance.status = 'b'
         instance.save()
         return True
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist, AttributeError):
         return None
 
 
-def get_orders(user_id):
+def get_orders(user_id: int) -> QuerySet[Order]:
+    """Get all user orders"""
     return Order.objects.filter(customer_id=user_id)

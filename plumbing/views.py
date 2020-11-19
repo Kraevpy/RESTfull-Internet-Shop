@@ -16,16 +16,16 @@ def index(request):
 
 
 def categories(request, category_id, subcategory_id=None):
-    categories_ = services.get_categories(category_id)
+    categories_ = services.get_subcategories(category_id)
 
     if not categories_:
         return redirect('index')
 
     if subcategory_id:
-        products_list = services.get_product_with_subcategory(subcategory_id)
+        products_list = services.get_product_with_category(subcategory_id)
 
     else:
-        products_list = services.get_product_with_category(category_id)
+        products_list = services.get_product_with_subcategory(category_id)
 
     return render(request, 'plumbing/home_page.html', context={
         'categories': categories_,

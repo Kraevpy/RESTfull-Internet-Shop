@@ -28,19 +28,28 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
+STANDART_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
 
+THIRD_PARTY_APPS = [
     'crispy_forms',
     'phonenumber_field',
-
-    'plumbing.apps.PlumbingConfig',
+    'rest_framework',
+    'rest_registration',
 ]
+
+LOCAL_APPS = [
+    'plumbing.apps.PlumbingConfig',
+    'plumbing_rest.apps.PlumbingRestConfig',
+]
+
+INSTALLED_APPS = STANDART_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
@@ -126,3 +135,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10
+}
+
+REST_REGISTRATION = {
+    'REGISTER_VERIFICATION_ENABLED': False,
+    'REGISTER_EMAIL_VERIFICATION_ENABLED': False,
+    'RESET_PASSWORD_VERIFICATION_ENABLED': False,
+}
