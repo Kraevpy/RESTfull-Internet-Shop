@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@4^4md%rp$dnbj#&zg1x44&-c9p+g4m-ohm4^(7@-=#8u=_e*f'
+SECRET_KEY = 'My_secret_key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -90,8 +90,8 @@ WSGI_APPLICATION = 'plumbingShop.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'plumbing',
-        'USER': 'postgres',
+        'NAME': 'db_name',
+        'USER': 'db_user',
         'PASSWORD': '123456',
         'HOST': 'localhost',
         'PORT': '5432',
