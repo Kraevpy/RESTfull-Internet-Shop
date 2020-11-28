@@ -1,11 +1,13 @@
 from django import forms
+
 from .models import User, Comments, Order
+from django.contrib.auth.forms import UserCreationForm
 
 
-class RegistrationForm(forms.ModelForm):
+class RegistrationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ("username", "password")
+        fields = ("email", "username", "password1", "password2")
 
 
 class CommentForm(forms.ModelForm):
@@ -17,4 +19,4 @@ class CommentForm(forms.ModelForm):
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ('address', 'phone_number', )
+        fields = ('address', 'phone_number',)

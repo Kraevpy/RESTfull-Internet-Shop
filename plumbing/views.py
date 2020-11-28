@@ -1,132 +1,156 @@
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse, reverse_lazy
+from django.views import View
+from django.views.generic import ListView, CreateView, FormView
 
-from .forms import CommentForm, OrderForm
+from .forms import OrderForm, RegistrationForm
 from plumbing import services
+from .models import Product, Comments
 
 
-def index(request):
-    categories_ = services.get_all_categories()
-    products_list = services.get_all_products()
+class ProductsListView(ListView):
+    model = Product
+    context_object_name = 'products'
+    template_name = 'plumbing/home_page.html'
+    paginate_by = 10
 
-    return render(request, 'plumbing/home_page.html', context={
-        'categories': categories_,
-        'products': products_list,
-    })
-
-
-def categories(request, category_id, subcategory_id=None):
-    categories_ = services.get_subcategories(category_id)
-
-    if not categories_:
-        return redirect('index')
-
-    if subcategory_id:
-        products_list = services.get_product_with_category(subcategory_id)
-
-    else:
-        products_list = services.get_product_with_subcategory(category_id)
-
-    return render(request, 'plumbing/home_page.html', context={
-        'categories': categories_,
-        'products': products_list,
-    })
-
-
-def product(request, serial_number):
-    product_ = services.get_product(serial_number)
-    if not product_:
-        return redirect('index')
-    comments = services.get_comments(product_)
-    if request.method == "POST":
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.sender_id = request.user.id
-            comment.product_id = product_.id
-            comment.save()
-            return redirect('show_product', serial_number=product_.serial_number)
-
+    def get_queryset(self):
+        if not self.kwargs.get('category_id', None):
+            # If the category_id is not passed then we return all products
+            return services.get_all_products()
+        if self.kwargs.get('subcategory_id', None):
+            # If the subcategory_id is passed, we return the products related to this subcategory
+            return services.get_product_with_subcategory(self.kwargs.get('subcategory_id', None))
         else:
-            return redirect('show_product', serial_number=product_.serial_number)
-    else:
-        form = CommentForm()
-        return render(request, 'plumbing/product_view.html', context={
-            'product': product_,
-            'comments': comments,
-            'form': form,
-        })
+            # If you passed category_id, we return products related to this category
+            return services.get_product_with_category(self.kwargs.get('category_id', None))
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        categories_ = services.get_subcategories(self.kwargs.get('category_id', None))
+        context = super().get_context_data(**kwargs)
+        context['categories'] = categories_
+        return context
 
 
-def register(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            services.create_basket(username)
-            return redirect('login')
+class ProductDetail(CreateView):
+    model = Comments
+    fields = ['text', ]
+    template_name = 'plumbing/product_view.html'
+
+    def get_success_url(self):
+        """Redirect after successfully submitting a comment"""
+        return reverse('show_product', kwargs={'serial_number': self.kwargs['serial_number']})
+
+    def form_valid(self, form):
+        """Adding product id and sender id to a comment"""
+        product_ = services.get_product(self.kwargs.get('serial_number', None))
+        form.instance.product_id = product_.id
+        form.instance.sender_id = self.request.user.id
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        """We return all information about the product and comments to it"""
+        context = super(ProductDetail, self).get_context_data()
+        product_ = services.get_product(self.kwargs.get('serial_number', None))
+        if not product_:
+            return redirect('index')
+        comments = services.get_comments(product_)
+        context['product'] = product_
+        context['comments'] = comments
+        return context
+
+
+class RegistrationView(FormView):
+    model = User
+    form_class = RegistrationForm
+    template_name = 'registration/registration.html'
+    success_url = reverse_lazy('index')
+
+    def form_valid(self, form):
+        form.save()
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password1')
+        email = form.cleaned_data.get('email')
+        user = authenticate(username=username, password=password, email=email)
+        login(self.request, user)
+        services.create_basket(username)
+        services.send_email_successful_registration(email)
+        return super(RegistrationView, self).form_valid(form)
+
+
+class BasketView(LoginRequiredMixin, ListView):
+    template_name = 'plumbing/basket.html'
+    context_object_name = 'products'
+
+    def get_queryset(self):
+        return services.get_user_products(self.kwargs.get('user_id', None))
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(BasketView, self).get_context_data()
+        products = services.get_user_products(self.kwargs.get('user_id', None))
+        cost = 0
+        for product_ in products:
+            cost += product_.cost
+        context.update({'cost': cost})
+        return context
+
+
+class AddToCard(LoginRequiredMixin, View):
+    @staticmethod
+    def get(request, serial_number):
+        services.add_to_card(request.user, serial_number)
+        return redirect('basket', user_id=request.user.id)
+
+
+class RemoveFromCard(LoginRequiredMixin, View):
+    @staticmethod
+    def get(request, serial_number):
+        services.remove_from_card(request.user, serial_number)
+        return redirect('basket', user_id=request.user.id)
+
+
+class CreateOrder(LoginRequiredMixin, FormView):
+    form_class = OrderForm
+    template_name = 'plumbing/create_order.html'
+
+    def get_success_url(self):
+        return reverse('orders', kwargs={'user_id': self.request.user.id})
+
+    def get_context_data(self, **kwargs):
+        context = super(CreateOrder, self).get_context_data()
+        product_ = services.get_product(self.kwargs.get('serial_number', None))
+        context['product'] = product_
+        return context
+
+    def form_valid(self, form):
+        if services.change_instance_status(self.kwargs.get('serial_number', None)):
+            product_ = services.get_product(self.kwargs.get('serial_number', None))
+            offer = form.save(commit=False)
+            offer.customer = self.request.user
+            offer.cost = product_.cost
+            offer.product_name = product_.name
+            offer.save()
+            services.send_email_create_order(
+                offer.customer.email,
+                offer.product_name,
+                offer.cost
+            )
+            return super(CreateOrder, self).form_valid(offer)
         else:
-            return render(request, 'registration/registration.html', {
-                'form': form,
-                'errors': form.error_messages,
-            })
-    elif request.method == "GET":
-        form = UserCreationForm()
-        return render(request, 'registration/registration.html', {'form': form})
+            return redirect('index')
 
 
-def basket(request, user_id):
-    products = services.get_user_products(user_id)
-    cost = 0
-    for product_ in products:
-        cost += product_.cost
-    return render(request, 'plumbing/basket.html', context={
-        'products': products,
-        'cost': cost,
-    })
+class OrdersList(LoginRequiredMixin, ListView):
+    template_name = 'plumbing/orders.html'
+    context_object_name = 'orders'
 
+    def get_queryset(self):
+        return services.get_orders(self.kwargs.get('user_id', None))
 
-def add_to_card(request, serial_number):
-    services.add_to_card(request.user, serial_number)
-    return redirect('basket', user_id=request.user.id)
-
-
-def remove_from_card(request, serial_number):
-    services.remove_from_card(request.user, serial_number)
-    return redirect('basket', user_id=request.user.id)
-
-
-def order(request, serial_number):
-    product_ = services.get_product(serial_number)
-    if request.method == "POST":
-        form = OrderForm(request.POST)
-        if form.is_valid():
-            if services.change_instance_status(serial_number):
-                offer = form.save(commit=False)
-                offer.customer = request.user
-                offer.cost = product_.cost
-                offer.product_name = product_.name
-                offer.save()
-                return redirect('index')
-            else:
-                return redirect('index')
-        else:
-            return render(request, 'plumbing/create_order.html', context={
-                'form': form,
-                'errors': form.errors,
-                'product': product_,
-            })
-    elif request.method == "GET":
-        form = OrderForm()
-        return render(request, 'plumbing/create_order.html', context={
-            'form': form,
-            'product': product_,
-        })
-
-
-def orders(request, user_id):
-    return render(request, 'plumbing/orders.html', context={
-        'orders': services.get_orders(user_id),
-        'user_id': user_id,
-    })
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(OrdersList, self).get_context_data()
+        context.update({'user_id': self.request.user.id})
+        return context

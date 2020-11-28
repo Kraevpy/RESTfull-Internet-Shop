@@ -4,6 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from plumbing.models import Category, Product, Comments, Basket, ProductInstance, Order, Company
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
+from django.core.mail import send_mail
+from plumbingShop import settings
 
 
 def get_all_categories(field: str = 'name') -> QuerySet[Category]:
@@ -78,12 +80,12 @@ def get_comments(product: Product) -> QuerySet[Comments]:
     return Comments.objects.filter(product=product)
 
 
-def get_product_with_subcategory(category_id: int) -> QuerySet[Product]:
+def get_product_with_category(category_id: int) -> QuerySet[Product]:
     """Returns all products belonging to the subcategory"""
     return Product.objects.filter(category__parent_id=category_id)
 
 
-def get_product_with_category(subcategory_id: int) -> QuerySet[Product]:
+def get_product_with_subcategory(subcategory_id: int) -> QuerySet[Product]:
     """Returns all products belonging to a category"""
     return Product.objects.filter(category_id=subcategory_id)
 
@@ -121,3 +123,37 @@ def change_instance_status(serial_number: str) -> Optional[bool]:
 def get_orders(user_id: int) -> QuerySet[Order]:
     """Get all user orders"""
     return Order.objects.filter(customer_id=user_id)
+
+
+def send_email_successful_registration(email: str):
+    html_message = '<em> На нашем сайте Вы можете ознакомится и купить сантехнику наиболее известных производителей.' \
+                   'Продажа в комплексе с услугами по установке и производству подготовительных работ. ' \
+                   'Обязательное гарантийное и послегарантийное обслуживание.' \
+                   ' Консультации опытных специалистов-установщиков.' \
+                   'Помощь в подборе оптимального решения </em>' \
+                   f'<em><html><head><body><a href="{settings.ALLOWED_HOSTS[0]}":{settings.PORT}>' \
+                   'Вы успешно зарегестрировались на сайте PlumbingShop'
+    send_mail(
+        'Добро пожаловать в мир "PlumbingShop"',
+        '',
+        settings.EMAIL_HOST_USER,
+        [email],
+        html_message=html_message
+    )
+
+
+def send_email_create_order(email, product_name, cost):
+    html_message = f"""
+    <em>
+        Вы успешно заказали {product_name} стоимость: {cost} BYN.
+        Благодарим за то что выбрали наш магазин.
+    </em>
+     """
+    send_mail(
+        '"PlumbingShop" заказ успешно оформлен',
+        '',
+        settings.EMAIL_HOST_USER,
+        [email],
+        html_message=html_message
+    )
+

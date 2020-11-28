@@ -153,13 +153,13 @@ class ServicesTest(TestCase):
         self.assertEqual(self.first_product, services.get_product('first_serial'))
         self.assertIsNone(services.get_product('not exist serial'))
 
-    def test_get_product_with_category(self):
-        self.assertIn(self.first_product, services.get_product_with_category(self.first_category.id))
-        self.assertEqual(1, len(services.get_product_with_category(self.first_category.id)))
-
     def test_get_product_with_subcategory(self):
-        self.assertIn(self.second_product, services.get_product_with_subcategory(self.second_category.id))
-        self.assertEqual(1, len(services.get_product_with_subcategory(self.second_category.id)))
+        self.assertIn(self.first_product, services.get_product_with_subcategory(self.first_category.id))
+        self.assertEqual(1, len(services.get_product_with_subcategory(self.first_category.id)))
+
+    def test_get_product_with_category(self):
+        self.assertIn(self.second_product, services.get_product_with_category(self.second_category.id))
+        self.assertEqual(1, len(services.get_product_with_category(self.second_category.id)))
 
     def test_get_all_instances(self):
         self.assertIn(self.first_instance, services.get_all_instances())

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
+import smtplib
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,13 +20,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'My_secret_key'
+SECRET_KEY = '@4^4md%rp$dnbj#&zg1x44&-c9p+g4m-ohm4^(7@-=#8u=_e*f'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["127.0.0.1"]
+PORT = "8000"
 # Application definition
 
 STANDART_APPS = [
@@ -90,8 +91,8 @@ WSGI_APPLICATION = 'plumbingShop.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'db_name',
-        'USER': 'db_user',
+        'NAME': 'plumbing',
+        'USER': 'postgres',
         'PASSWORD': '123456',
         'HOST': 'localhost',
         'PORT': '5432',
@@ -121,7 +122,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+
+TIME_ZONE = 'Europe/Moscow'
+
 
 USE_I18N = True
 
@@ -136,6 +139,13 @@ STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
+# configuring mail sending
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'kraev8828828@gmail.com'
+EMAIL_HOST_PASSWORD = '6000693eE'
+EMAIL_PORT = 587
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10
@@ -143,6 +153,9 @@ REST_FRAMEWORK = {
 
 REST_REGISTRATION = {
     'REGISTER_VERIFICATION_ENABLED': False,
-    'REGISTER_EMAIL_VERIFICATION_ENABLED': False,
+    'REGISTER_EMAIL_VERIFICATION_ENABLED': True,
     'RESET_PASSWORD_VERIFICATION_ENABLED': False,
+    'REGISTER_EMAIL_VERIFICATION_URL': 'http://127.0.0.1:8000',  # provide a link to the frontend server
+    'VERIFICATION_FROM_EMAIL': 'kraev8828828@gmail.com',
+
 }
