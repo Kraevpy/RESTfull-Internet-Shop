@@ -8,12 +8,13 @@
 5) django-crripy-forms
 6) bootstrap 4
 7) postgresql
+8) unittests
 ```
 ```
 Установка:
 1) создать venv
 2) pip install requirements.txt
-3) в файле settings.py изметить настройки бд
+3) в файле settings.py изменить настройки бд
 ```
 ```
 Запуск:
