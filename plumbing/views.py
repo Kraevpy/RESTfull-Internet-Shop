@@ -1,7 +1,7 @@
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, FormView
@@ -9,6 +9,7 @@ from django.views.generic import ListView, CreateView, FormView
 from .forms import OrderForm, RegistrationForm
 from plumbing import services
 from .models import Product, Comments
+from plumbing_rest import services as rest_services
 
 
 class ProductsListView(ListView):
@@ -20,7 +21,7 @@ class ProductsListView(ListView):
     def get_queryset(self):
         if not self.kwargs.get('category_id', None):
             # If the category_id is not passed then we return all products
-            return services.get_all_products()
+            return rest_services.get_all_products()
         if self.kwargs.get('subcategory_id', None):
             # If the subcategory_id is passed, we return the products related to this subcategory
             return services.get_product_with_subcategory(self.kwargs.get('subcategory_id', None))

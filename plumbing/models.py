@@ -11,8 +11,7 @@ class Category(models.Model):
                                related_name='parent_field')
 
     def __str__(self):
-        type_ = ""
-        if self.parent is None:
+        if not self.parent:
             type_ = "Category"
         else:
             type_ = "SubCategory"
