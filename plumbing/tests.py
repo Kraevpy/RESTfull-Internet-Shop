@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from .models import Category, Company, Product, ProductInstance, Comments, Order
 from . import services
-
+from plumbing_rest import services as rest_services
 
 class ServicesTest(TestCase):
     def setUp(self) -> None:
@@ -123,31 +123,31 @@ class ServicesTest(TestCase):
         self.second_subcategory.delete()
 
     def test_get_all_categories(self):
-        self.assertIn(self.first_category, services.get_all_categories())
-        self.assertIn(self.second_category, services.get_all_categories())
-        self.assertNotIn(self.first_subcategory, services.get_all_categories())
-        self.assertEqual(services.get_all_categories()[0], self.first_category)
-        self.assertEqual(services.get_all_categories()[1], self.second_category)
+        self.assertIn(self.first_category, rest_services.get_all_categories())
+        self.assertIn(self.second_category, rest_services.get_all_categories())
+        self.assertNotIn(self.first_subcategory, rest_services.get_all_categories())
+        self.assertEqual(rest_services.get_all_categories()[0], self.first_category)
+        self.assertEqual(rest_services.get_all_categories()[1], self.second_category)
 
     def test_get_all_subcategories(self):
-        self.assertIn(self.first_subcategory, services.get_all_subcategories())
-        self.assertIn(self.second_subcategory, services.get_all_subcategories())
-        self.assertNotIn(self.first_category, services.get_all_subcategories())
-        self.assertEqual(services.get_all_subcategories()[0], self.first_subcategory)
-        self.assertEqual(services.get_all_subcategories()[1], self.second_subcategory)
+        self.assertIn(self.first_subcategory, rest_services.get_all_subcategories())
+        self.assertIn(self.second_subcategory, rest_services.get_all_subcategories())
+        self.assertNotIn(self.first_category, rest_services.get_all_subcategories())
+        self.assertEqual(rest_services.get_all_subcategories()[0], self.first_subcategory)
+        self.assertEqual(rest_services.get_all_subcategories()[1], self.second_subcategory)
 
     def test_get_subcategories(self):
         self.assertEqual(services.get_subcategories(self.first_category.id)[0], self.first_subcategory)
         self.assertEqual(len(services.get_subcategories(self.first_category.id)), 1)
 
     def test_get_all_companies(self):
-        self.assertIn(self.maker_company, services.get_all_companies())
-        self.assertIn(self.importer_company, services.get_all_companies())
+        self.assertIn(self.maker_company, rest_services.get_all_companies())
+        self.assertIn(self.importer_company, rest_services.get_all_companies())
 
     def test_get_all_products(self):
-        self.assertEqual(len(services.get_all_products()), 2)
-        self.assertIn(self.first_product, services.get_all_products())
-        self.assertIn(self.second_product, services.get_all_products())
+        self.assertEqual(len(rest_services.get_all_products()), 2)
+        self.assertIn(self.first_product, rest_services.get_all_products())
+        self.assertIn(self.second_product, rest_services.get_all_products())
 
     def test_get_product(self):
         self.assertEqual(self.first_product, services.get_product('first_serial'))
@@ -162,8 +162,8 @@ class ServicesTest(TestCase):
         self.assertEqual(1, len(services.get_product_with_category(self.second_category.id)))
 
     def test_get_all_instances(self):
-        self.assertIn(self.first_instance, services.get_all_instances())
-        self.assertIn(self.second_instance, services.get_all_instances())
+        self.assertIn(self.first_instance, rest_services.get_all_instances())
+        self.assertIn(self.second_instance, rest_services.get_all_instances())
 
     def test_change_instance_status(self):
         self.assertTrue(services.change_instance_status(self.first_instance.product.serial_number))
@@ -171,8 +171,8 @@ class ServicesTest(TestCase):
         self.assertIsNone(services.change_instance_status(self.second_instance.product.serial_number))
 
     def test_get_all_comments(self):
-        self.assertIn(self.first_comment, services.get_all_comments())
-        self.assertIn(self.second_comment, services.get_all_comments())
+        self.assertIn(self.first_comment, rest_services.get_all_comments())
+        self.assertIn(self.second_comment, rest_services.get_all_comments())
 
     def test_get_comments(self):
         self.assertEqual(self.first_comment, services.get_comments(self.first_product)[0])
@@ -208,7 +208,7 @@ class ServicesTest(TestCase):
         self.assertEqual(len(self.user.basket.products.all()), 0)
 
     def test_get_all_orders(self):
-        self.assertIn(self.first_order, services.get_all_orders())
+        self.assertIn(self.first_order, rest_services.get_all_orders())
 
     def test_user_orders(self):
         self.assertEqual(len(services.get_orders(self.user.id)), 1)
